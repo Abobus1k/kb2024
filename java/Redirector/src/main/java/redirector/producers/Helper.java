@@ -11,13 +11,9 @@ public abstract class Helper {
                 key,
                 event
         );
-        log.info("rec ravno = " + rec.toString());
-
-
         rec.headers().add("from", from.getBytes());
         rec.headers().add("to", to.getBytes());
 
-        log.info("headers ravno = " + rec.headers().toString());
         return rec;
     }
 }

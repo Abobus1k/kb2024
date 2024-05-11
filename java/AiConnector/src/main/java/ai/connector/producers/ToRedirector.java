@@ -24,7 +24,6 @@ public class ToRedirector extends Helper{
 
     public void send(Connection event, String key, String from, String to) {
         log.info("Start sending new device: {}", event);
-        log.info("abobaboaboabaobaoo" + formMessage(event, key, from, to).headers().headers(from).toString());
         kafka.send(formMessage(event, key, from, to));
         log.info("Sent message: {} to topic: {}", event, to);
     }

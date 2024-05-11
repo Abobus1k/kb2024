@@ -27,9 +27,9 @@ public class FromAiConnector {
             containerFactory = "makeTravel"
     )
     public void consume(final ConsumerRecord<String, Connection> record) {
-//        if (!Objects.equals(record.key(), "default")) {
-//            return;
-//        }
+        if (!Objects.equals(record.key(), "create-connection")) {
+            return;
+        }
         log.info("Starting FromAiConnector");
         log.info(
                 "Received message: {}",
