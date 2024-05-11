@@ -7,4 +7,4 @@
 #sleep 8
 
 sudo docker compose -f java/AiConnector/docker-compose.yml up -d --build
-sudo docker compose -f java/Redirector/docker-compose.yml up -d --build
+sudo docker compose -f java/Redirector/docker-compose.yml up --build

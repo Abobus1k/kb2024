@@ -5,6 +5,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import redirector.Connection;
+import redirector.Secret;
 import redirector.TravelCommand;
 import redirector.producers.ToTravel;
 
@@ -36,9 +37,13 @@ public class FromAiConnector {
                 record.value()
         );
         try {
+            String encryptedCommand = Secret.encrypt(record.value().getConnectionCommand());
+            log.info("Encrypted command: {}", encryptedCommand);
+            String decryptedCommand = Secret.decrypt(encryptedCommand);
+            log.info("Decrypted command: {}", decryptedCommand);
             prod.send(
                     new TravelCommand(
-                            record.value().getConnectionCommand()
+                            encryptedCommand
                     ),
                     "default",
                     "redirector",
