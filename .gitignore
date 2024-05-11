@@ -1,0 +1,4 @@
+**/target/
+**/.idea/
+
+/monitor/src/__pycache__

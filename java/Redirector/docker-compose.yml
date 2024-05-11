@@ -1,0 +1,13 @@
+networks:
+  kafka-net:
+    name: kafka-net
+    driver: bridge
+
+services:
+  redirector:
+    container_name: redirector
+    networks:
+      - kafka-net
+    build:
+      context: .
+      dockerfile: Dockerfile

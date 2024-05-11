@@ -1,0 +1,15 @@
+networks:
+  kafka-net:
+    name: kafka-net
+    driver: bridge
+
+services:
+  ai-connector:
+    container_name: ai-connector
+    networks:
+      - kafka-net
+    ports:
+      - 8083:8083
+    build:
+      context: .
+      dockerfile: Dockerfile

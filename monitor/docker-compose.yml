@@ -1,0 +1,12 @@
+networks:
+  kafka-net:
+    name: kafka-net
+    driver: bridge
+
+services:
+  monitor:
+    image: monitor
+    build:
+      context: .
+    networks:
+      - kafka-net

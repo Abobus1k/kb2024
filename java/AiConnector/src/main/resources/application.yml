@@ -1,0 +1,8 @@
+server:
+  port: 8083
+
+spring:
+  kafka:
+    listener.ack-mode: manual
+    bootstrap-servers:
+      - kafka-1:9092
