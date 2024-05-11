@@ -1,8 +1,10 @@
-package ai.connector.conf;
+package jarvis.conf;
 
-import ai.connector.*;
+import jarvis.*;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.RoundRobinPartitioner;
+import org.apache.kafka.common.protocol.types.Field;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -15,7 +17,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 
 import java.util.Map;
 import java.util.Objects;
@@ -23,10 +24,11 @@ import java.util.function.Consumer;
 
 @Configuration
 public class Kafka {
-    public static final String MISSION_PREPARE_REQUEST = "missionPrepareRequest";
-    public static final String CREATE_AI_CONNECTION = "createAiConnection";
-    public static final String MISSION_INFO_RESPONSE = "missionInfoResponse";
-    public static final String PREFLIGHT_RESPONSE = "preflightResponse";
+    public static final String SEND_MISSION_INFO_REQUEST = "sendMissionInfoRequest";
+    public static final String PRE_FLIGHT_REQUEST = "preFlightRequest";
+    public static final String READY_FOR_MISSION = "readyForMission";
+    public static final String FLIGHT_INFO_REQUEST = "flightInfoRequest";
+    public static final String WEAPON_RESPONSE = "weaponResponse";
     private final KafkaProperties properties;
 
     public Kafka(KafkaProperties properties) {
@@ -34,8 +36,8 @@ public class Kafka {
         this.properties = properties;
     }
 
-    @Bean(CREATE_AI_CONNECTION)
-    public KafkaTemplate<String, Connection> createAiConnection() {
+    @Bean(SEND_MISSION_INFO_REQUEST)
+    public KafkaTemplate<String, MissionInfoRequest> sendMissionInfo() {
         return new KafkaTemplate<>(producerFactory(
                 properties -> {
                     properties.put(ProducerConfig.ACKS_CONFIG, "all");
@@ -43,8 +45,8 @@ public class Kafka {
         ));
     }
 
-    @Bean(MISSION_PREPARE_REQUEST)
-    public KafkaTemplate<String, MissionPrepareRequest> missionPrepareRequest() {
+    @Bean(PRE_FLIGHT_REQUEST)
+    public KafkaTemplate<String, PreFlightRequest> preFlightRequest() {
         return new KafkaTemplate<>(producerFactory(
                 properties -> {
                     properties.put(ProducerConfig.ACKS_CONFIG, "all");
@@ -52,8 +54,8 @@ public class Kafka {
         ));
     }
 
-    @Bean(MISSION_INFO_RESPONSE)
-    public KafkaTemplate<String, MissionInfoResponse> missionInfoResponseKafkaTemplate() {
+    @Bean(READY_FOR_MISSION)
+    public KafkaTemplate<String, ReadyForMission> readyForMission() {
         return new KafkaTemplate<>(producerFactory(
                 properties -> {
                     properties.put(ProducerConfig.ACKS_CONFIG, "all");
@@ -61,8 +63,17 @@ public class Kafka {
         ));
     }
 
-    @Bean(PREFLIGHT_RESPONSE)
-    public KafkaTemplate<String, PreFlightResponse> preflightResponseKafkaTemplate() {
+    @Bean(FLIGHT_INFO_REQUEST)
+    public KafkaTemplate<String, FlightInfoRequest> flightInfoRequest() {
+        return new KafkaTemplate<>(producerFactory(
+                properties -> {
+                    properties.put(ProducerConfig.ACKS_CONFIG, "all");
+                }
+        ));
+    }
+
+    @Bean(WEAPON_RESPONSE)
+    public KafkaTemplate<String, WeaponActivationResponse> weaponResponse() {
         return new KafkaTemplate<>(producerFactory(
                 properties -> {
                     properties.put(ProducerConfig.ACKS_CONFIG, "all");
@@ -90,54 +101,72 @@ public class Kafka {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Connection>
-    createConnection() {
+    public ConcurrentKafkaListenerContainerFactory<String, MissionPrepareRequest>
+    missionPrepareRequestContainerFactory() {
         var props = properties.buildConsumerProperties(null);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
         props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
-        ConcurrentKafkaListenerContainerFactory<String, Connection>
+        ConcurrentKafkaListenerContainerFactory<String, MissionPrepareRequest>
                 factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(
                 new DefaultKafkaConsumerFactory<>(
                         props,
                         new StringDeserializer(),
-                        new JsonDeserializer<>(Connection.class)
+                        new JsonDeserializer<>(MissionPrepareRequest.class)
                 )
         );
         return factory;
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, MissionInfoRequest>
-    missionInfoRequestContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, MissionInfoResponse>
+    missionInfoResponseContainerFactory() {
         var props = properties.buildConsumerProperties(null);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
         props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
-        ConcurrentKafkaListenerContainerFactory<String, MissionInfoRequest>
+        ConcurrentKafkaListenerContainerFactory<String, MissionInfoResponse>
                 factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(
                 new DefaultKafkaConsumerFactory<>(
                         props,
                         new StringDeserializer(),
-                        new JsonDeserializer<>(MissionInfoRequest.class)
+                        new JsonDeserializer<>(MissionInfoResponse.class)
                 )
         );
         return factory;
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, PreFlightRequest>
-    preFlightRequestContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, PreFlightResponse>
+    preFlightResponseContainerFactory() {
         var props = properties.buildConsumerProperties(null);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
         props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
-        ConcurrentKafkaListenerContainerFactory<String, PreFlightRequest>
+        ConcurrentKafkaListenerContainerFactory<String, PreFlightResponse>
                 factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(
                 new DefaultKafkaConsumerFactory<>(
                         props,
                         new StringDeserializer(),
-                        new JsonDeserializer<>(PreFlightRequest.class)
+                        new JsonDeserializer<>(PreFlightResponse.class)
+                )
+        );
+        return factory;
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, WeaponActivationRequest>
+    weaponActivationRequestContainerFactory() {
+        var props = properties.buildConsumerProperties(null);
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
+        props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
+        ConcurrentKafkaListenerContainerFactory<String, WeaponActivationRequest>
+                factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(
+                new DefaultKafkaConsumerFactory<>(
+                        props,
+                        new StringDeserializer(),
+                        new JsonDeserializer<>(WeaponActivationRequest.class)
                 )
         );
         return factory;

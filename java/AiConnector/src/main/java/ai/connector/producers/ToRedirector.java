@@ -1,6 +1,7 @@
 package ai.connector.producers;
 
 import ai.connector.Connection;
+import ai.connector.Secret;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -22,9 +23,8 @@ public class ToRedirector extends Helper{
         this.kafka = kafkaTemplate;
     }
 
-    public void send(Connection event, String key, String from, String to) {
-        log.info("Start sending new device: {}", event);
-        kafka.send(formMessage(event, key, from, to));
-        log.info("Sent message: {} to topic: {}", event, to);
+    public void send(Connection event, String key, String from, String to) throws Exception {
+        Connection encryptedConnection = new Connection(Secret.encrypt(event.getConnectionCommand()));
+        kafka.send(formMessage(encryptedConnection, key, from, to));
     }
 }

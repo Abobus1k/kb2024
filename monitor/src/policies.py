@@ -14,7 +14,12 @@ def check_operation(id, headers):
     if src == 'ai-connector' and dst == 'redirector' and (id == 'default' or id == 'create-connection'):
         authorized = True
     elif src == 'redirector' and dst == 'maneuvr' and id == 'default':
+        authorized = True
+    elif src == 'ai-connector' and dst == 'jarvis' and id == 'default':
+        authorized = True
+    elif src == 'jarvis' and dst == 'ai-connector' and id == 'default':
             authorized = True
+
 
 
     return authorized

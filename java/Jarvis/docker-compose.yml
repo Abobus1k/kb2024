@@ -1,0 +1,13 @@
+networks:
+  kafka-net:
+    name: kafka-net
+    driver: bridge
+
+services:
+  jarvis:
+    container_name: jarvis
+    networks:
+      - kafka-net
+    build:
+      context: .
+      dockerfile: Dockerfile

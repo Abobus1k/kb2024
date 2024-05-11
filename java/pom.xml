@@ -17,6 +17,7 @@
     <modules>
         <module>AiConnector</module>
         <module>Redirector</module>
+        <module>Jarvis</module>
     </modules>
 
     <properties>
