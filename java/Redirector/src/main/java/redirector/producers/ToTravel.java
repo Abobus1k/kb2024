@@ -4,27 +4,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-import redirector.TravelCommand;
+import redirector.Message;
+import redirector.Secret;
 
 import java.util.Objects;
 
-import static redirector.conf.Kafka.MAKE_TRAVEL;
+import static redirector.conf.Kafka.MESSAGE;
 
 @Component
 @Slf4j
 public class ToTravel extends Helper{
-    private final KafkaTemplate<String, TravelCommand> kafka;
+    private final KafkaTemplate<String, Message> messageKafkaTemplate;
 
     public ToTravel(
-            @Qualifier(MAKE_TRAVEL)
-            final KafkaTemplate<String, TravelCommand> kafkaTemplate) {
-        Objects.requireNonNull(kafkaTemplate);
-        this.kafka = kafkaTemplate;
+            @Qualifier(MESSAGE)
+            final KafkaTemplate<String, Message> messageKafkaTemplate) {
+        Objects.requireNonNull(messageKafkaTemplate);
+        this.messageKafkaTemplate = messageKafkaTemplate;
     }
 
-    public void send(TravelCommand event, String key, String from, String to) {
-        log.info("Start sending new device: {}", event);
-        kafka.send(formMessage(event, key, from, to));
-        log.info("Sent message: {} to topic: {}", event, to);
+    public void sendMessage(Message event, String key, String from, String to) throws Exception {
+        Message message = new Message(Secret.encrypt(event.getMessage()));
+        messageKafkaTemplate.send(formMessage(event, key, from, to));
     }
 }

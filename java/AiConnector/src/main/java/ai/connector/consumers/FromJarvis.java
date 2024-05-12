@@ -2,6 +2,7 @@ package ai.connector.consumers;
 
 import ai.connector.*;
 import ai.connector.producers.ToJarvis;
+import ai.connector.producers.ToRedirector;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -12,70 +13,57 @@ import java.util.Objects;
 @Component
 @Slf4j
 public class FromJarvis {
-    private final ToJarvis prod;
+    private final ToJarvis prodToJarvis;
+    private final ToRedirector prodToRedirector;
 
-    public FromJarvis(ToJarvis prod) {
-        Objects.requireNonNull(prod);
-        this.prod = prod;
+    public FromJarvis(ToJarvis prodToJarvis, ToRedirector prodToRedirector) {
+        Objects.requireNonNull(prodToJarvis);
+        this.prodToJarvis = prodToJarvis;
+        Objects.requireNonNull(prodToJarvis);
+        this.prodToRedirector = prodToRedirector;
     }
 
     @KafkaListener(
             topics = "jarvis-ai-connector",
-            groupId = "jarvis-ai-connector-mission-info-request",
+            groupId = "jarvis-ai-connector",
             concurrency = "1",
-            containerFactory = "missionInfoRequestContainerFactory"
+            containerFactory = "messageContainerFactory"
     )
-    public void missionInfoRequest(final ConsumerRecord<String, MissionInfoRequest> record) {
-        log.info("Starting FromAiConnector");
-        log.info(
-                "Received message: {}",
-                record.value()
-        );
-        try {
-            log.info("Encrypted command: {}", record.value().getMissionInfoRequest());
-            String decryptedCommand = Secret.decrypt(record.value().getMissionInfoRequest());
-            log.info("Decrypted command: {}", decryptedCommand);
-            prod.sendMissionInfoResponse(
-                    new MissionInfoResponse(
-                            Secret.encrypt("Информация передана")
-                    ),
+    public void consume(ConsumerRecord<String, Message> record) throws Exception {
+        if (record.value().getMessage().equals("Передача информации о миссии")) {
+            prodToJarvis.sendMessage(
+                    new Message("Информация о миссии передана"),
                     "default",
                     "ai-connector",
                     "jarvis"
             );
-        } catch (Exception ex) {
-            log.info("Error: {}", ex.getMessage());
         }
-        log.info("End FromAiConnector");
-    }
 
-    @KafkaListener(
-            topics = "jarvis-ai-connector",
-            groupId = "jarvis-ai-connector-preflight-request",
-            concurrency = "1",
-            containerFactory = "preFlightRequestContainerFactory"
-    )
-    public void preFlightRequest(final ConsumerRecord<String, PreFlightRequest> record) {
-        log.info("Starting FromAiConnector");
-        log.info(
-                "Received message: {}",
-                record.value()
-        );
-        try {
-            log.info("Encrypted command: {}", record.value().getPreFlightRequest());
-            String decryptedCommand = Secret.decrypt(record.value().getPreFlightRequest());
-            log.info("Decrypted command: {}", decryptedCommand);
-            prod.sendPreFlightResponse(
-                    new PreFlightResponse(
-                            "Запрос на предполетную диагностику"
-                    ),
+        if (record.value().getMessage().equals("Запрос на предполетную диагностику")) {
+            prodToRedirector.sendMessage(
+                    new Message("Запрос на предполетную диагностику"),
                     "default",
                     "ai-connector",
-                    "jarvis"
+                    "redirector"
             );
-        } catch (Exception ex) {
-            log.info("Error: {}", ex.getMessage());
         }
-        log.info("End FromAiConnector");
+
+        if (record.value().getMessage().equals("Передача информации о полете")) {
+            prodToRedirector.sendMessage(
+                    new Message("Передача информации о полете"),
+                    "default",
+                    "ai-connector",
+                    "redirector"
+            );
+        }
+
+        if (record.value().getMessage().equals("Оружие подобрано")) {
+            prodToRedirector.sendMessage(
+                    new Message("Оружие подобрано"),
+                    "default",
+                    "ai-connector",
+                    "redirector"
+            );
+        }
     }
 }

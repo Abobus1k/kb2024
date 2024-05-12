@@ -4,9 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import redirector.Connection;
-import redirector.Secret;
-import redirector.TravelCommand;
+import redirector.Message;
+import redirector.producers.ToMonitoring;
 import redirector.producers.ToTravel;
 
 import java.util.Objects;
@@ -14,44 +13,48 @@ import java.util.Objects;
 @Component
 @Slf4j
 public class FromAiConnector {
-    private final ToTravel prod;
+    private final ToMonitoring prod;
+    private final ToTravel prodToTravel;
 
-    public FromAiConnector(ToTravel prod) {
+    public FromAiConnector(ToMonitoring prod, ToTravel prodToTravel) {
         Objects.requireNonNull(prod);
         this.prod = prod;
+        Objects.requireNonNull(prodToTravel);
+        this.prodToTravel = prodToTravel;
     }
 
     @KafkaListener(
             topics = "ai-connector-redirector",
             groupId = "ai-connector-redirector",
             concurrency = "1",
-            containerFactory = "makeTravel"
+            containerFactory = "messageContainerFactory"
     )
-    public void consume(final ConsumerRecord<String, Connection> record) {
-        if (!Objects.equals(record.key(), "create-connection")) {
-            return;
-        }
-        log.info("Starting FromAiConnector");
-        log.info(
-                "Received message: {}",
-                record.value()
-        );
-        try {
-            String encryptedCommand = Secret.encrypt(record.value().getConnectionCommand());
-            log.info("Encrypted command: {}", encryptedCommand);
-            String decryptedCommand = Secret.decrypt(encryptedCommand);
-            log.info("Decrypted command: {}", decryptedCommand);
-            prod.send(
-                    new TravelCommand(
-                            encryptedCommand
-                    ),
+    public void consume(final ConsumerRecord<String, Message> record) throws Exception {
+        if (record.value().getMessage().equals("Запрос на предполетную диагностику")) {
+            prod.sendMessage(
+                    new Message("Запрос на предполетную диагностику"),
                     "default",
                     "redirector",
-                    "maneuvr"
+                    "monitoring"
             );
-        } catch (Exception ex) {
-            log.info("Error: {}", ex.getMessage());
         }
-        log.info("End FromAiConnector");
+
+        if (record.value().getMessage().equals("Передача информации о полете")) {
+            prodToTravel.sendMessage(
+                    new Message("Передача информации о полете"),
+                    "default",
+                    "redirector",
+                    "travel"
+            );
+        }
+
+        if (record.value().getMessage().equals("Оружие подобрано")) {
+            prodToTravel.sendMessage(
+                    new Message("Оружие подобрано"),
+                    "default",
+                    "redirector",
+                    "weapon"
+            );
+        }
     }
 }

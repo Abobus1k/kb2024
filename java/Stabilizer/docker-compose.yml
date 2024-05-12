@@ -1,0 +1,13 @@
+networks:
+  kafka-net:
+    name: kafka-net
+    driver: bridge
+
+services:
+  stabilizer:
+    container_name: stabilizer
+    networks:
+      - kafka-net
+    build:
+      context: .
+      dockerfile: Dockerfile

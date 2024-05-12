@@ -29,6 +29,7 @@ public class Kafka {
     public static final String READY_FOR_MISSION = "readyForMission";
     public static final String FLIGHT_INFO_REQUEST = "flightInfoRequest";
     public static final String WEAPON_RESPONSE = "weaponResponse";
+    public static final String MESSAGE = "message";
     private final KafkaProperties properties;
 
     public Kafka(KafkaProperties properties) {
@@ -36,44 +37,8 @@ public class Kafka {
         this.properties = properties;
     }
 
-    @Bean(SEND_MISSION_INFO_REQUEST)
-    public KafkaTemplate<String, MissionInfoRequest> sendMissionInfo() {
-        return new KafkaTemplate<>(producerFactory(
-                properties -> {
-                    properties.put(ProducerConfig.ACKS_CONFIG, "all");
-                }
-        ));
-    }
-
-    @Bean(PRE_FLIGHT_REQUEST)
-    public KafkaTemplate<String, PreFlightRequest> preFlightRequest() {
-        return new KafkaTemplate<>(producerFactory(
-                properties -> {
-                    properties.put(ProducerConfig.ACKS_CONFIG, "all");
-                }
-        ));
-    }
-
-    @Bean(READY_FOR_MISSION)
-    public KafkaTemplate<String, ReadyForMission> readyForMission() {
-        return new KafkaTemplate<>(producerFactory(
-                properties -> {
-                    properties.put(ProducerConfig.ACKS_CONFIG, "all");
-                }
-        ));
-    }
-
-    @Bean(FLIGHT_INFO_REQUEST)
-    public KafkaTemplate<String, FlightInfoRequest> flightInfoRequest() {
-        return new KafkaTemplate<>(producerFactory(
-                properties -> {
-                    properties.put(ProducerConfig.ACKS_CONFIG, "all");
-                }
-        ));
-    }
-
-    @Bean(WEAPON_RESPONSE)
-    public KafkaTemplate<String, WeaponActivationResponse> weaponResponse() {
+    @Bean(MESSAGE)
+    public KafkaTemplate<String, Message> message() {
         return new KafkaTemplate<>(producerFactory(
                 properties -> {
                     properties.put(ProducerConfig.ACKS_CONFIG, "all");
@@ -101,72 +66,18 @@ public class Kafka {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, MissionPrepareRequest>
-    missionPrepareRequestContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, Message>
+    messageContainerFactory() {
         var props = properties.buildConsumerProperties(null);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
         props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
-        ConcurrentKafkaListenerContainerFactory<String, MissionPrepareRequest>
+        ConcurrentKafkaListenerContainerFactory<String, Message>
                 factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(
                 new DefaultKafkaConsumerFactory<>(
                         props,
                         new StringDeserializer(),
-                        new JsonDeserializer<>(MissionPrepareRequest.class)
-                )
-        );
-        return factory;
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, MissionInfoResponse>
-    missionInfoResponseContainerFactory() {
-        var props = properties.buildConsumerProperties(null);
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
-        props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
-        ConcurrentKafkaListenerContainerFactory<String, MissionInfoResponse>
-                factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(
-                new DefaultKafkaConsumerFactory<>(
-                        props,
-                        new StringDeserializer(),
-                        new JsonDeserializer<>(MissionInfoResponse.class)
-                )
-        );
-        return factory;
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, PreFlightResponse>
-    preFlightResponseContainerFactory() {
-        var props = properties.buildConsumerProperties(null);
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
-        props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
-        ConcurrentKafkaListenerContainerFactory<String, PreFlightResponse>
-                factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(
-                new DefaultKafkaConsumerFactory<>(
-                        props,
-                        new StringDeserializer(),
-                        new JsonDeserializer<>(PreFlightResponse.class)
-                )
-        );
-        return factory;
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, WeaponActivationRequest>
-    weaponActivationRequestContainerFactory() {
-        var props = properties.buildConsumerProperties(null);
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
-        props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
-        ConcurrentKafkaListenerContainerFactory<String, WeaponActivationRequest>
-                factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(
-                new DefaultKafkaConsumerFactory<>(
-                        props,
-                        new StringDeserializer(),
-                        new JsonDeserializer<>(WeaponActivationRequest.class)
+                        new JsonDeserializer<>(Message.class)
                 )
         );
         return factory;

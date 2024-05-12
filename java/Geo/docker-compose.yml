@@ -1,0 +1,13 @@
+networks:
+  kafka-net:
+    name: kafka-net
+    driver: bridge
+
+services:
+  geo:
+    container_name: geo
+    networks:
+      - kafka-net
+    build:
+      context: .
+      dockerfile: Dockerfile

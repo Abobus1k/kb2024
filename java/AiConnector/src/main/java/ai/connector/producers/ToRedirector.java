@@ -1,6 +1,6 @@
 package ai.connector.producers;
 
-import ai.connector.Connection;
+import ai.connector.Message;
 import ai.connector.Secret;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -9,22 +9,23 @@ import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
-import static ai.connector.conf.Kafka.CREATE_AI_CONNECTION;
+import static ai.connector.conf.Kafka.MESSAGE;
 
 @Component
 @Slf4j
-public class ToRedirector extends Helper{
-    private final KafkaTemplate<String, Connection> kafka;
+public class ToRedirector extends Helper {
+    private final KafkaTemplate<String, Message> messageKafkaTemplate;
 
     public ToRedirector(
-            @Qualifier(CREATE_AI_CONNECTION)
-            final KafkaTemplate<String, Connection> kafkaTemplate) {
-        Objects.requireNonNull(kafkaTemplate);
-        this.kafka = kafkaTemplate;
-    }
+            @Qualifier(MESSAGE)
+            final KafkaTemplate<String, Message> messageKafkaTemplate
 
-    public void send(Connection event, String key, String from, String to) throws Exception {
-        Connection encryptedConnection = new Connection(Secret.encrypt(event.getConnectionCommand()));
-        kafka.send(formMessage(encryptedConnection, key, from, to));
+    ) {
+        Objects.requireNonNull(messageKafkaTemplate);
+        this.messageKafkaTemplate = messageKafkaTemplate;
+    }
+    public void sendMessage(Message event, String key, String from, String to) throws Exception {
+        Message message = new Message(Secret.encrypt(event.getMessage()));
+        messageKafkaTemplate.send(formMessage(event, key, from, to));
     }
 }

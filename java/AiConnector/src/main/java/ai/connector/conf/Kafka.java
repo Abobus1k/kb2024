@@ -23,10 +23,7 @@ import java.util.function.Consumer;
 
 @Configuration
 public class Kafka {
-    public static final String MISSION_PREPARE_REQUEST = "missionPrepareRequest";
-    public static final String CREATE_AI_CONNECTION = "createAiConnection";
-    public static final String MISSION_INFO_RESPONSE = "missionInfoResponse";
-    public static final String PREFLIGHT_RESPONSE = "preflightResponse";
+    public static final String MESSAGE = "message";
     private final KafkaProperties properties;
 
     public Kafka(KafkaProperties properties) {
@@ -34,35 +31,8 @@ public class Kafka {
         this.properties = properties;
     }
 
-    @Bean(CREATE_AI_CONNECTION)
-    public KafkaTemplate<String, Connection> createAiConnection() {
-        return new KafkaTemplate<>(producerFactory(
-                properties -> {
-                    properties.put(ProducerConfig.ACKS_CONFIG, "all");
-                }
-        ));
-    }
-
-    @Bean(MISSION_PREPARE_REQUEST)
-    public KafkaTemplate<String, MissionPrepareRequest> missionPrepareRequest() {
-        return new KafkaTemplate<>(producerFactory(
-                properties -> {
-                    properties.put(ProducerConfig.ACKS_CONFIG, "all");
-                }
-        ));
-    }
-
-    @Bean(MISSION_INFO_RESPONSE)
-    public KafkaTemplate<String, MissionInfoResponse> missionInfoResponseKafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory(
-                properties -> {
-                    properties.put(ProducerConfig.ACKS_CONFIG, "all");
-                }
-        ));
-    }
-
-    @Bean(PREFLIGHT_RESPONSE)
-    public KafkaTemplate<String, PreFlightResponse> preflightResponseKafkaTemplate() {
+    @Bean(MESSAGE)
+    public KafkaTemplate<String, Message> message() {
         return new KafkaTemplate<>(producerFactory(
                 properties -> {
                     properties.put(ProducerConfig.ACKS_CONFIG, "all");
@@ -90,54 +60,18 @@ public class Kafka {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Connection>
-    createConnection() {
+    public ConcurrentKafkaListenerContainerFactory<String, Message>
+    messageContainerFactory() {
         var props = properties.buildConsumerProperties(null);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
         props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
-        ConcurrentKafkaListenerContainerFactory<String, Connection>
+        ConcurrentKafkaListenerContainerFactory<String, Message>
                 factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(
                 new DefaultKafkaConsumerFactory<>(
                         props,
                         new StringDeserializer(),
-                        new JsonDeserializer<>(Connection.class)
-                )
-        );
-        return factory;
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, MissionInfoRequest>
-    missionInfoRequestContainerFactory() {
-        var props = properties.buildConsumerProperties(null);
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
-        props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
-        ConcurrentKafkaListenerContainerFactory<String, MissionInfoRequest>
-                factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(
-                new DefaultKafkaConsumerFactory<>(
-                        props,
-                        new StringDeserializer(),
-                        new JsonDeserializer<>(MissionInfoRequest.class)
-                )
-        );
-        return factory;
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, PreFlightRequest>
-    preFlightRequestContainerFactory() {
-        var props = properties.buildConsumerProperties(null);
-        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
-        props.put(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
-        ConcurrentKafkaListenerContainerFactory<String, PreFlightRequest>
-                factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(
-                new DefaultKafkaConsumerFactory<>(
-                        props,
-                        new StringDeserializer(),
-                        new JsonDeserializer<>(PreFlightRequest.class)
+                        new JsonDeserializer<>(Message.class)
                 )
         );
         return factory;

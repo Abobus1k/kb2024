@@ -1,0 +1,13 @@
+networks:
+  kafka-net:
+    name: kafka-net
+    driver: bridge
+
+services:
+  enemy:
+    container_name: enemy
+    networks:
+      - kafka-net
+    build:
+      context: .
+      dockerfile: Dockerfile

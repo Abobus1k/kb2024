@@ -18,6 +18,12 @@
         <module>AiConnector</module>
         <module>Redirector</module>
         <module>Jarvis</module>
+        <module>Monitoring</module>
+        <module>Travel</module>
+        <module>Geo</module>
+        <module>Weapon</module>
+        <module>Enemy</module>
+        <module>Stabilizer</module>
     </modules>
 
     <properties>

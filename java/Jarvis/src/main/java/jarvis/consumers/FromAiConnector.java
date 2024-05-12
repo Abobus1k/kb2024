@@ -21,129 +21,52 @@ public class FromAiConnector {
 
     @KafkaListener(
             topics = "ai-connector-jarvis",
-            groupId = "ai-connector-jarvis-mission-prepare",
+            groupId = "ai-connector-jarvis",
             concurrency = "1",
-            containerFactory = "missionPrepareRequestContainerFactory"
+            containerFactory = "messageContainerFactory"
     )
-    public void missionPrepare(final ConsumerRecord<String, MissionPrepareRequest> record) {
-        log.info("Starting FromAiConnector");
-        log.info(
-                "Received message: {}",
-                record.value()
-        );
-        try {
-            log.info("Encrypted command: {}", record.value().getMissionPrepareRequest());
-            String decryptedCommand = Secret.decrypt(record.value().getMissionPrepareRequest());
-            log.info("Decrypted command: {}", decryptedCommand);
-            prod.sendMissionInfoRequest(
-                    new MissionInfoRequest(
-                            Secret.encrypt("Информация о миссии")
-                    ),
+    public void consume(final ConsumerRecord<String, Message> record) throws Exception {
+        if (record.value().getMessage().equals("Запрос на начало подготовки к миссии")) {
+            prod.sendMessage(
+                    new Message("Передача информации о миссии"),
                     "default",
                     "jarvis",
                     "ai-connector"
             );
-        } catch (Exception ex) {
-            log.info("Error: {}", ex.getMessage());
         }
-        log.info("End FromAiConnector");
-    }
 
-    @KafkaListener(
-            topics = "ai-connector-jarvis",
-            groupId = "ai-connector-jarvis-mission-prepare-response",
-            concurrency = "1",
-            containerFactory = "missionInfoResponseContainerFactory"
-    )
-    public void missionResponse(final ConsumerRecord<String, MissionInfoResponse> record) {
-        log.info("Starting FromAiConnector");
-        log.info(
-                "Received message: {}",
-                record.value()
-        );
-        try {
-            log.info("Encrypted command: {}", record.value().getMissionInfoResponse());
-            String decryptedCommand = Secret.decrypt(record.value().getMissionInfoResponse());
-            log.info("Decrypted command: {}", decryptedCommand);
-            prod.sendPreFlightRequest(
-                    new PreFlightRequest(
-                            Secret.encrypt("Запрос на предполетную диагностику")
-                    ),
+        if (record.value().getMessage().equals("Информация о миссии передана")) {
+            prod.sendMessage(
+                    new Message("Запрос на предполетную диагностику"),
                     "default",
                     "jarvis",
                     "ai-connector"
             );
-        } catch (Exception ex) {
-            log.info("Error: {}", ex.getMessage());
         }
-        log.info("End FromAiConnector");
-    }
 
-    @KafkaListener(
-            topics = "ai-connector-jarvis",
-            groupId = "ai-connector-jarvis-preflight-response",
-            concurrency = "1",
-            containerFactory = "preFlightResponseContainerFactory"
-    )
-    public void preFlightResponse(final ConsumerRecord<String, PreFlightResponse> record) {
-        log.info("Starting FromAiConnector");
-        log.info(
-                "Received message: {}",
-                record.value()
-        );
-        try {
-            log.info("Encrypted command: {}", record.value().getPreFlightResponse());
-            String decryptedCommand = Secret.decrypt(record.value().getPreFlightResponse());
-            log.info("Decrypted command: {}", decryptedCommand);
-            prod.sendReadyForMissionRequest(
-                    new ReadyForMission(
-                            Secret.encrypt("Готов к миссии")
-                    ),
+        if (record.value().getMessage().equals("Передача актуальной информации о состоянии системы")) {
+            prod.sendMessage(
+                    new Message("Готов к миссии"),
                     "default",
                     "jarvis",
                     "ai-connector"
             );
-            prod.sendFlightInfoRequest(
-                    new FlightInfoRequest(
-                            Secret.encrypt("Информация о полете")
-                    ),
-                    "default",
-                    "jarvis",
-                    "ai-connector"
-            );
-        } catch (Exception ex) {
-            log.info("Error: {}", ex.getMessage());
-        }
-        log.info("End FromAiConnector");
-    }
 
-    @KafkaListener(
-            topics = "ai-connector-jarvis",
-            groupId = "ai-connector-jarvis-weapon-request",
-            concurrency = "1",
-            containerFactory = "weaponActivationRequestContainerFactory"
-    )
-    public void weaponActivationRequest(final ConsumerRecord<String, WeaponActivationRequest> record) {
-        log.info("Starting FromAiConnector");
-        log.info(
-                "Received message: {}",
-                record.value()
-        );
-        try {
-            log.info("Encrypted command: {}", record.value().getWeaponActivationRequest());
-            String decryptedCommand = Secret.decrypt(record.value().getWeaponActivationRequest());
-            log.info("Decrypted command: {}", decryptedCommand);
-            prod.sendWeaponResponse(
-                    new WeaponActivationResponse(
-                            Secret.encrypt("Оружие подобрано")
-                    ),
+            prod.sendMessage(
+                    new Message("Передача информации о полете"),
                     "default",
                     "jarvis",
                     "ai-connector"
             );
-        } catch (Exception ex) {
-            log.info("Error: {}", ex.getMessage());
         }
-        log.info("End FromAiConnector");
+
+        if (record.value().getMessage().equals("Запрос на активацию оружия")) {
+            prod.sendMessage(
+                    new Message("Оружие подобрано"),
+                    "default",
+                    "jarvis",
+                    "ai-connector"
+            );
+        }
     }
 }
