@@ -30,7 +30,9 @@ public class FromJarvis {
             containerFactory = "messageContainerFactory"
     )
     public void consume(ConsumerRecord<String, Message> record) throws Exception {
-        if (record.value().getMessage().equals("Передача информации о миссии")) {
+        String msg = Secret.decrypt(record.value().getMessage());
+
+        if (msg.equals("Передача информации о миссии")) {
             prodToJarvis.sendMessage(
                     new Message("Информация о миссии передана"),
                     "default",
@@ -39,7 +41,7 @@ public class FromJarvis {
             );
         }
 
-        if (record.value().getMessage().equals("Запрос на предполетную диагностику")) {
+        if (msg.equals("Запрос на предполетную диагностику")) {
             prodToRedirector.sendMessage(
                     new Message("Запрос на предполетную диагностику"),
                     "default",
@@ -48,7 +50,7 @@ public class FromJarvis {
             );
         }
 
-        if (record.value().getMessage().equals("Передача информации о полете")) {
+        if (msg.equals("Передача информации о полете")) {
             prodToRedirector.sendMessage(
                     new Message("Передача информации о полете"),
                     "default",
@@ -57,7 +59,7 @@ public class FromJarvis {
             );
         }
 
-        if (record.value().getMessage().equals("Оружие подобрано")) {
+        if (msg.equals("Оружие подобрано")) {
             prodToRedirector.sendMessage(
                     new Message("Оружие подобрано"),
                     "default",

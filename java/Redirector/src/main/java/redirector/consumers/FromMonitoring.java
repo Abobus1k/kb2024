@@ -5,6 +5,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import redirector.Message;
+import redirector.Secret;
 import redirector.producers.ToAiConnector;
 import redirector.producers.ToMonitoring;
 
@@ -27,7 +28,9 @@ public class FromMonitoring {
             containerFactory = "messageContainerFactory"
     )
     public void consume(final ConsumerRecord<String, Message> record) throws Exception {
-        if (record.value().getMessage().equals("Передача актуальной информации о состоянии системы")) {
+        String msg = Secret.decrypt(record.value().getMessage());
+
+        if (msg.equals("Передача актуальной информации о состоянии системы")) {
             prod.sendMessage(
                     new Message("Передача актуальной информации о состоянии системы"),
                     "default",

@@ -5,6 +5,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import stabilizer.Message;
+import stabilizer.Secret;
 import stabilizer.producers.ToStabilizer;
 
 import java.util.Objects;
@@ -26,7 +27,9 @@ public class FromGeo {
             containerFactory = "messageContainerFactory"
     )
     public void consume(final ConsumerRecord<String, Message> record) throws Exception {
-        if (record.value().getMessage().equals("Передача команды для перемещения")) {
+        String msg = Secret.decrypt(record.value().getMessage());
+
+        if (msg.equals("Передача команды для перемещения")) {
             prod.sendMessage(
                     new Message("Исполнение команды для перемещения"),
                     "default",
@@ -34,7 +37,7 @@ public class FromGeo {
                     "stabilizer"
             );
         }
-        if (record.value().getMessage().equals("Передача неаутентичной команды для перемещения")) {
+        if (msg.equals("Передача неаутентичной команды для перемещения")) {
             prod.sendMessage(
                     new Message("Команда была неаутентичная, будет выполнена экстренная посадка и переход систем в авиарежим"),
                     "default",

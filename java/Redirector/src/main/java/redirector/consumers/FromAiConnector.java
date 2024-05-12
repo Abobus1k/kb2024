@@ -5,6 +5,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import redirector.Message;
+import redirector.Secret;
 import redirector.producers.ToMonitoring;
 import redirector.producers.ToTravel;
 
@@ -30,7 +31,9 @@ public class FromAiConnector {
             containerFactory = "messageContainerFactory"
     )
     public void consume(final ConsumerRecord<String, Message> record) throws Exception {
-        if (record.value().getMessage().equals("Запрос на предполетную диагностику")) {
+        String msg = Secret.decrypt(record.value().getMessage());
+
+        if (msg.equals("Запрос на предполетную диагностику")) {
             prod.sendMessage(
                     new Message("Запрос на предполетную диагностику"),
                     "default",
@@ -39,7 +42,7 @@ public class FromAiConnector {
             );
         }
 
-        if (record.value().getMessage().equals("Передача информации о полете")) {
+        if (msg.equals("Передача информации о полете")) {
             prodToTravel.sendMessage(
                     new Message("Передача информации о полете"),
                     "default",
@@ -48,7 +51,7 @@ public class FromAiConnector {
             );
         }
 
-        if (record.value().getMessage().equals("Оружие подобрано")) {
+        if (msg.equals("Оружие подобрано")) {
             prodToTravel.sendMessage(
                     new Message("Оружие подобрано"),
                     "default",

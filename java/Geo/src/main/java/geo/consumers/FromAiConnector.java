@@ -1,6 +1,7 @@
 package geo.consumers;
 
 import geo.Message;
+import geo.Secret;
 import geo.producers.ToMonitoring;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -29,7 +30,9 @@ public class FromAiConnector {
             containerFactory = "messageContainerFactory"
     )
     public void consume(final ConsumerRecord<String, Message> record) throws Exception {
-        if (record.value().getMessage().equals("Негативный кейс")) {
+        String msg = Secret.decrypt(record.value().getMessage());
+
+        if (msg.equals("Негативный кейс")) {
             prod.sendMessage(
                     new Message("Передача неаутентичных данных в интерфейс"),
                     "default",

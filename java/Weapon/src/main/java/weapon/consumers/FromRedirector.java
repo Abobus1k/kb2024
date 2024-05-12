@@ -5,6 +5,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import weapon.Message;
+import weapon.Secret;
 import weapon.producers.ToWeapon;
 
 import java.util.Objects;
@@ -26,7 +27,9 @@ public class FromRedirector {
             containerFactory = "messageContainerFactory"
     )
     public void consume(final ConsumerRecord<String, Message> record) throws Exception {
-        if (record.value().getMessage().equals("Оружие подобрано")) {
+        String msg = Secret.decrypt(record.value().getMessage());
+
+        if (msg.equals("Оружие подобрано")) {
             prod.sendMessage(
                     new Message("Оружие активировано"),
                     "action",

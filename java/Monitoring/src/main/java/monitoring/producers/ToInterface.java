@@ -25,6 +25,6 @@ public class ToInterface extends Helper {
 
     public void sendMessage(Message event, String key, String from, String to) throws Exception {
         Message message = new Message(Secret.encrypt(event.getMessage()));
-        messageKafkaTemplate.send(formMessage(event, key, from, to));
+        messageKafkaTemplate.send(formMessage(message, key, from, to));
     }
 }

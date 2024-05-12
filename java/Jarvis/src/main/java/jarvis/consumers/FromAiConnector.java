@@ -26,7 +26,9 @@ public class FromAiConnector {
             containerFactory = "messageContainerFactory"
     )
     public void consume(final ConsumerRecord<String, Message> record) throws Exception {
-        if (record.value().getMessage().equals("Запрос на начало подготовки к миссии")) {
+        String msg = Secret.decrypt(record.value().getMessage());
+
+        if (msg.equals("Запрос на начало подготовки к миссии")) {
             prod.sendMessage(
                     new Message("Передача информации о миссии"),
                     "default",
@@ -35,7 +37,7 @@ public class FromAiConnector {
             );
         }
 
-        if (record.value().getMessage().equals("Информация о миссии передана")) {
+        if (msg.equals("Информация о миссии передана")) {
             prod.sendMessage(
                     new Message("Запрос на предполетную диагностику"),
                     "default",
@@ -44,7 +46,7 @@ public class FromAiConnector {
             );
         }
 
-        if (record.value().getMessage().equals("Передача актуальной информации о состоянии системы")) {
+        if (msg.equals("Передача актуальной информации о состоянии системы")) {
             prod.sendMessage(
                     new Message("Готов к миссии"),
                     "default",
@@ -60,7 +62,7 @@ public class FromAiConnector {
             );
         }
 
-        if (record.value().getMessage().equals("Запрос на активацию оружия")) {
+        if (msg.equals("Запрос на активацию оружия")) {
             prod.sendMessage(
                     new Message("Оружие подобрано"),
                     "default",

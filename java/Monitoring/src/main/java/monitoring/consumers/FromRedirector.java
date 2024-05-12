@@ -2,6 +2,7 @@ package monitoring.consumers;
 
 import lombok.extern.slf4j.Slf4j;
 import monitoring.Message;
+import monitoring.Secret;
 import monitoring.producers.ToRedirector;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -26,7 +27,9 @@ public class FromRedirector {
             containerFactory = "messageContainerFactory"
     )
     public void consume(final ConsumerRecord<String, Message> record) throws Exception {
-        if (record.value().getMessage().equals("Запрос на предполетную диагностику")) {
+        String msg = Secret.decrypt(record.value().getMessage());
+
+        if (msg.equals("Запрос на предполетную диагностику")) {
             prod.sendMessage(
                     new Message("Передача актуальной информации о состоянии системы"),
                     "default",

@@ -2,6 +2,7 @@ package monitoring.consumers;
 
 import lombok.extern.slf4j.Slf4j;
 import monitoring.Message;
+import monitoring.Secret;
 import monitoring.producers.ToInterface;
 import monitoring.producers.ToRedirector;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -27,7 +28,9 @@ public class FromGeo {
             containerFactory = "messageContainerFactory"
     )
     public void consume(final ConsumerRecord<String, Message> record) throws Exception {
-        if (record.value().getMessage().equals("Передача данных в интерфейс")) {
+        String msg = Secret.decrypt(record.value().getMessage());
+
+        if (msg.equals("Передача данных в интерфейс")) {
             prod.sendMessage(
                     new Message("Передача данных в интерфейс"),
                     "default",
@@ -36,7 +39,7 @@ public class FromGeo {
             );
         }
 
-        if (record.value().getMessage().equals("Перемещение завершено")) {
+        if (msg.equals("Перемещение завершено")) {
             prod.sendMessage(
                     new Message("Перемещение завершено"),
                     "default",
@@ -44,7 +47,7 @@ public class FromGeo {
                     "interface"
             );
         }
-        if (record.value().getMessage().equals("Передача неаутентичных данных в интерфейс")) {
+        if (msg.equals("Передача неаутентичных данных в интерфейс")) {
             prod.sendMessage(
                     new Message("Передаваемые данные неаутентичны, будет включен автопилот"),
                     "default",
@@ -53,7 +56,7 @@ public class FromGeo {
             );
         }
 
-        if (record.value().getMessage().equals("Неаутентичное перемещение завершено")) {
+        if (msg.equals("Неаутентичное перемещение завершено")) {
             prod.sendMessage(
                     new Message("Включен автопилот"),
                     "default",

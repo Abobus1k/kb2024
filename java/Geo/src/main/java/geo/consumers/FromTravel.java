@@ -1,6 +1,7 @@
 package geo.consumers;
 
 import geo.Message;
+import geo.Secret;
 import geo.producers.ToMonitoring;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -26,7 +27,9 @@ public class FromTravel {
             containerFactory = "messageContainerFactory"
     )
     public void consume(final ConsumerRecord<String, Message> record) throws Exception {
-        if (record.value().getMessage().equals("Передача информации о полете")) {
+        String msg = Secret.decrypt(record.value().getMessage());
+
+        if (msg.equals("Передача информации о полете")) {
             prod.sendMessage(
                     new Message("Передача данных в интерфейс"),
                     "default",

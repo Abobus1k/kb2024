@@ -1,6 +1,7 @@
 package enemy.consumers;
 
 import enemy.Message;
+import enemy.Secret;
 import enemy.producers.ToWeapon;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -26,7 +27,9 @@ public class FromWeapon {
             containerFactory = "messageContainerFactory"
     )
     public void consume(final ConsumerRecord<String, Message> record) throws Exception {
-        if (record.value().getMessage().equals("Оружие применено")) {
+        String msg = Secret.decrypt(record.value().getMessage());
+
+        if (msg.equals("Оружие применено")) {
             prod.sendMessage(
                     new Message("Враг поражен"),
                     "default",
