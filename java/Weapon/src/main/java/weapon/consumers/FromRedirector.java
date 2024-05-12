@@ -28,18 +28,19 @@ public class FromRedirector {
     )
     public void consume(final ConsumerRecord<String, Message> record) throws Exception {
         String msg = Secret.decrypt(record.value().getMessage());
+        log.info(msg);
 
         if (msg.equals("Оружие подобрано")) {
             prod.sendMessage(
                     new Message("Оружие активировано"),
-                    "action",
+                    "default",
                     "weapon",
                     "weapon"
             );
 
             prod.sendMessage(
                     new Message("Оружие применено"),
-                    "action",
+                    "default",
                     "weapon",
                     "enemy"
             );
